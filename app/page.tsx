@@ -50,13 +50,13 @@ export default function Home() {
       >
         <section className="flex h-screen w-screen items-center justify-center px-6 box-border">
           <div className="flex max-w-2xl flex-col items-center gap-4 text-center">
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
+            <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl">
               te form <span className="line-through text-muted-foreground">sucks</span>
             </h1>
             <button
               type="button"
               onClick={() => setActiveSection("quiz")}
-              className="text-xs uppercase tracking-[0.4em] text-muted-foreground transition-colors hover:text-foreground"
+              className="cursor-pointer text-sm uppercase tracking-[0.4em] text-muted-foreground transition-colors hover:text-foreground"
             >
               click to start
             </button>
