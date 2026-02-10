@@ -111,12 +111,22 @@ export function QuizSession({
   const [selectedChoice, setSelectedChoice] = React.useState<string | null>(
     null
   );
+  const [requireCorrection, setRequireCorrection] = React.useState(false);
+  const [correctionValue, setCorrectionValue] = React.useState("");
+  const [correctionAccepted, setCorrectionAccepted] = React.useState(false);
+  const correctionInputRef = React.useRef<HTMLInputElement | null>(null);
+  const isIncorrect = status === "incorrect";
+  const mustCorrect = requireCorrection && isIncorrect && !correctionAccepted;
+  const canAdvance =
+    status === "correct" || (isIncorrect && !requireCorrection) || correctionAccepted;
 
   React.useEffect(() => {
     setQuestion(buildQuestion(config));
     setInputValue("");
     setStatus("idle");
     setSelectedChoice(null);
+    setCorrectionValue("");
+    setCorrectionAccepted(false);
   }, [config]);
 
   const resetQuestion = React.useCallback(() => {
@@ -124,6 +134,8 @@ export function QuizSession({
     setInputValue("");
     setStatus("idle");
     setSelectedChoice(null);
+    setCorrectionValue("");
+    setCorrectionAccepted(false);
   }, [config]);
 
   const checkAnswer = React.useCallback(
@@ -132,9 +144,80 @@ export function QuizSession({
       const isCorrect =
         normalizeAnswer(value) === normalizeAnswer(question.answer);
       setStatus(isCorrect ? "correct" : "incorrect");
+      setCorrectionAccepted(false);
+      if (isCorrect) {
+        setCorrectionValue("");
+        if (question.mode !== "multiple-choice") {
+          requestAnimationFrame(() => {
+            if (document.activeElement instanceof HTMLElement) {
+              document.activeElement.blur();
+            }
+          });
+        }
+      } else if (question.mode !== "multiple-choice") {
+        requestAnimationFrame(() => {
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
+        });
+      }
     },
     [question]
   );
+
+  const confirmCorrection = React.useCallback(() => {
+    if (!question) return;
+    const isCorrect =
+      normalizeAnswer(correctionValue) ===
+      normalizeAnswer(question.answer);
+    if (isCorrect) {
+      setCorrectionAccepted(true);
+    }
+  }, [correctionValue, question]);
+
+  React.useEffect(() => {
+    if (status === "idle" || !question || !canAdvance) return;
+
+    const handler = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+      if (event.repeat) return;
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName.toLowerCase();
+        if (tag === "input" || tag === "textarea" || target.isContentEditable) {
+          return;
+        }
+      }
+      const ignored = new Set([
+        "Shift",
+        "Control",
+        "Alt",
+        "Meta",
+        "Tab",
+        "CapsLock",
+        "Escape",
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+      ]);
+      if (ignored.has(event.key)) return;
+      resetQuestion();
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [status, question, canAdvance, resetQuestion]);
+
+  React.useEffect(() => {
+    if (!requireCorrection) return;
+    if (status !== "incorrect" || correctionAccepted) return;
+    correctionInputRef.current?.focus();
+  }, [requireCorrection, status, correctionAccepted]);
 
   React.useEffect(() => {
     if (status === "idle" || !question) return;
@@ -212,26 +295,23 @@ export function QuizSession({
                     const normalizedChoice = normalizeAnswer(choice);
                     const normalizedAnswer = normalizeAnswer(question.answer);
                     const isSelected = selectedChoice === choice;
-                    const showResult = status !== "idle" && isSelected;
-                    const isCorrect =
-                      showResult && normalizedChoice === normalizedAnswer;
+                    const isCorrectAnswer =
+                      normalizedChoice === normalizedAnswer;
+                    const showCorrectHighlight =
+                      status === "incorrect" && isCorrectAnswer;
+                    const showSelectedCorrect =
+                      status === "correct" && isSelected && isCorrectAnswer;
+                    const showSelectedWrong =
+                      status === "incorrect" && isSelected && !isCorrectAnswer;
                     return (
                       <Button
                         key={choice}
-                        variant={
-                          showResult
-                            ? isCorrect
-                              ? "default"
-                              : "secondary"
-                            : "outline"
-                        }
+                        variant={showSelectedWrong ? "secondary" : "outline"}
                         className={cn(
                           "h-12 text-base",
-                          showResult &&
-                            isCorrect &&
+                          (showCorrectHighlight || showSelectedCorrect) &&
                             "bg-emerald-500 text-white hover:bg-emerald-500",
-                          showResult &&
-                            !isCorrect &&
+                          showSelectedWrong &&
                             "bg-rose-500 text-white hover:bg-rose-500"
                         )}
                         onClick={() => {
@@ -244,10 +324,21 @@ export function QuizSession({
                     );
                   })}
                 </div>
-                <div>
+                <div className="flex items-center justify-between gap-4">
                   <Button variant="outline" onClick={resetQuestion}>
                     Skip
                   </Button>
+                  <label className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-foreground"
+                      checked={requireCorrection}
+                      onChange={(event) =>
+                        setRequireCorrection(event.target.checked)
+                      }
+                    />
+                    Correct before continue
+                  </label>
                 </div>
               </div>
             )}
@@ -278,10 +369,21 @@ export function QuizSession({
                     Check
                   </Button>
                 </div>
-                <div>
+                <div className="flex items-center justify-between gap-4">
                   <Button variant="outline" onClick={resetQuestion}>
                     Skip
                   </Button>
+                  <label className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-foreground"
+                      checked={requireCorrection}
+                      onChange={(event) =>
+                        setRequireCorrection(event.target.checked)
+                      }
+                    />
+                    Correct before continue
+                  </label>
                 </div>
               </div>
             )}
@@ -295,7 +397,11 @@ export function QuizSession({
                     status === "incorrect" && "text-destructive"
                   )}
                 >
-                  {status === "correct" ? "Nice." : "Not quite."}
+                  {status === "correct"
+                    ? "Nice."
+                    : correctionAccepted
+                      ? "Corrected."
+                      : "Not quite."}
                 </p>
                 {status === "incorrect" && (
                   <div className="space-y-1 text-base text-muted-foreground">
@@ -305,13 +411,37 @@ export function QuizSession({
                     </Link>
                   </div>
                 )}
-                {question.mode === "multiple-choice" && (
+                {mustCorrect && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Type the correct answer to continue.
+                    </p>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Input
+                        ref={correctionInputRef}
+                        value={correctionValue}
+                        onChange={(event) => setCorrectionValue(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            confirmCorrection();
+                          }
+                        }}
+                        className="h-10 text-sm"
+                        placeholder="Correct answer"
+                      />
+                      <Button variant="secondary" onClick={confirmCorrection}>
+                        Confirm
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {canAdvance && !mustCorrect && (
                   <p className="text-sm text-muted-foreground">
                     Press any key to continue.
                   </p>
                 )}
                 <div className="flex flex-wrap gap-3">
-                  <Button size="lg" onClick={resetQuestion}>
+                  <Button size="lg" onClick={resetQuestion} disabled={!canAdvance}>
                     Next
                   </Button>
                   <Button variant="ghost" size="sm" asChild aria-label="Home">

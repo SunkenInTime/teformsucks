@@ -56,8 +56,8 @@ export default function QuizPage() {
           </Link>
         </Button>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild aria-label="Cheat sheet">
-            <Link href="/cheatsheet">CS</Link>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/cheatsheet">Cheat sheet</Link>
           </Button>
           <ThemeToggle />
         </div>
