@@ -3,7 +3,6 @@
 import Link from "next/link";
 
 import { QuizHub } from "@/components/quiz/quiz-hub";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
   return (
@@ -33,7 +32,9 @@ export default function Home() {
               <Link className="text-sm underline" href="/cheatsheet">
                 Cheat sheet
               </Link>
-              <ThemeToggle />
+              <Link className="text-sm underline" href="/quiz?preset=verb-masu">
+                Jump to quiz
+              </Link>
             </div>
           </div>
           <QuizHub />
