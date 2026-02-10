@@ -4,7 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
+import { Home } from "lucide-react";
+
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 import { QuizSession } from "@/components/quiz/quiz-session";
 import {
   CUSTOM_QUIZ_STORAGE_KEY,
@@ -44,21 +47,29 @@ export default function QuizPage() {
   }, [presetId, useCustom]);
 
   return (
-    <main className="min-h-screen bg-background px-6 py-10">
-      <header className="mx-auto flex w-full max-w-5xl items-center justify-between">
-        <Link className="text-sm underline" href="/">
-          Home
-        </Link>
-        <div className="flex items-center gap-3">
-          <Link className="text-sm underline" href="/cheatsheet">
-            Cheat sheet
+    <main className="relative min-h-screen bg-background px-6 py-10 flex flex-col">
+      <div className="pointer-events-none absolute inset-0 bg-dot-grid" />
+      <header className="relative z-10 flex w-full items-center justify-between px-0">
+        <Button variant="ghost" size="sm" asChild aria-label="Home">
+          <Link href="/">
+            <Home className="h-4 w-4" />
           </Link>
+        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" asChild aria-label="Cheat sheet">
+            <Link href="/cheatsheet">CS</Link>
+          </Button>
           <ThemeToggle />
         </div>
       </header>
 
-      <section className="mx-auto mt-10 w-full max-w-5xl">
-        <QuizSession config={config} />
+      <section className="relative z-10 flex w-full flex-1 items-center justify-center">
+        <div className="mx-auto w-full max-w-6xl lg:w-[80vw]">
+          <QuizSession
+            config={config}
+            className="rounded-2xl border border-border/60 bg-card/90 p-8 shadow-lg backdrop-blur"
+          />
+        </div>
       </section>
     </main>
   );

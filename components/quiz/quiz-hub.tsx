@@ -54,7 +54,7 @@ function ToggleGroup({
   );
 }
 
-export function QuizHub() {
+export function QuizHub({ isQuizVisible = false }: { isQuizVisible?: boolean }) {
   const [activeConfig, setActiveConfig] = React.useState<QuizConfig>(presets[0]);
   const [customConfig, setCustomConfig] = React.useState<QuizConfig>(
     defaultCustomConfig
@@ -103,13 +103,20 @@ export function QuizHub() {
   return (
     <div className="space-y-10">
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {presets.map((preset) => (
+        {presets.map((preset, index) => (
           <Card
             key={preset.id}
             className={cn(
               "transition hover:border-foreground/40",
               activeConfig.id === preset.id && "border-foreground"
             )}
+            style={{
+              opacity: isQuizVisible ? 1 : 0,
+              transform: isQuizVisible ? "translateY(0)" : "translateY(20px)",
+              transitionDuration: "500ms",
+              transitionDelay: isQuizVisible ? `${200 + index * 50}ms` : "0ms",
+              transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+            }}
           >
             <CardHeader>
               <CardTitle>{preset.title}</CardTitle>
@@ -212,10 +219,10 @@ export function QuizHub() {
           />
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={startCustom} disabled={!customValid}>
+            <Button variant="outline" onClick={startCustom} disabled={!customValid}>
               Save Custom Quiz
             </Button>
-            <Button variant="secondary" asChild disabled={!customValid}>
+            <Button asChild disabled={!customValid}>
               <Link href="/quiz?custom=1">Start Custom Quiz</Link>
             </Button>
             {!customValid && (

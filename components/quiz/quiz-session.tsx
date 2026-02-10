@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { Home } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -95,23 +96,34 @@ function buildQuestion(config: QuizConfig): Question | null {
   };
 }
 
-export function QuizSession({ config }: { config: QuizConfig }) {
+export function QuizSession({
+  config,
+  className,
+}: {
+  config: QuizConfig;
+  className?: string;
+}) {
   const [question, setQuestion] = React.useState<Question | null>(null);
   const [inputValue, setInputValue] = React.useState("");
   const [status, setStatus] = React.useState<"idle" | "correct" | "incorrect">(
     "idle"
+  );
+  const [selectedChoice, setSelectedChoice] = React.useState<string | null>(
+    null
   );
 
   React.useEffect(() => {
     setQuestion(buildQuestion(config));
     setInputValue("");
     setStatus("idle");
+    setSelectedChoice(null);
   }, [config]);
 
   const resetQuestion = React.useCallback(() => {
     setQuestion(buildQuestion(config));
     setInputValue("");
     setStatus("idle");
+    setSelectedChoice(null);
   }, [config]);
 
   const checkAnswer = React.useCallback(
@@ -124,8 +136,40 @@ export function QuizSession({ config }: { config: QuizConfig }) {
     [question]
   );
 
+  React.useEffect(() => {
+    if (status === "idle" || !question) return;
+    if (question.mode !== "multiple-choice") return;
+
+    const handler = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+      if (event.repeat) return;
+      const ignored = new Set([
+        "Shift",
+        "Control",
+        "Alt",
+        "Meta",
+        "Tab",
+        "CapsLock",
+        "Escape",
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+      ]);
+      if (ignored.has(event.key)) return;
+      resetQuestion();
+    };
+
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [status, question, resetQuestion]);
+
   return (
-    <Card className="border-0 shadow-none">
+    <Card className={cn("border-0 shadow-none", className)}>
       <CardHeader className="px-0">
         <CardTitle className="text-3xl sm:text-4xl">
           {config.title}
@@ -162,17 +206,49 @@ export function QuizSession({ config }: { config: QuizConfig }) {
             </div>
 
             {question.mode === "multiple-choice" && (
-              <div className="grid gap-3 md:grid-cols-2">
-                {question.choices?.map((choice) => (
-                  <Button
-                    key={choice}
-                    variant="outline"
-                    className="h-12 text-base"
-                    onClick={() => checkAnswer(choice)}
-                  >
-                    {choice}
+              <div className="space-y-3">
+                <div className="grid gap-3 md:grid-cols-2">
+                  {question.choices?.map((choice) => {
+                    const normalizedChoice = normalizeAnswer(choice);
+                    const normalizedAnswer = normalizeAnswer(question.answer);
+                    const isSelected = selectedChoice === choice;
+                    const showResult = status !== "idle" && isSelected;
+                    const isCorrect =
+                      showResult && normalizedChoice === normalizedAnswer;
+                    return (
+                      <Button
+                        key={choice}
+                        variant={
+                          showResult
+                            ? isCorrect
+                              ? "default"
+                              : "secondary"
+                            : "outline"
+                        }
+                        className={cn(
+                          "h-12 text-base",
+                          showResult &&
+                            isCorrect &&
+                            "bg-emerald-500 text-white hover:bg-emerald-500",
+                          showResult &&
+                            !isCorrect &&
+                            "bg-rose-500 text-white hover:bg-rose-500"
+                        )}
+                        onClick={() => {
+                          setSelectedChoice(choice);
+                          checkAnswer(choice);
+                        }}
+                      >
+                        {choice}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <div>
+                  <Button variant="outline" onClick={resetQuestion}>
+                    Skip
                   </Button>
-                ))}
+                </div>
               </div>
             )}
 
@@ -202,6 +278,11 @@ export function QuizSession({ config }: { config: QuizConfig }) {
                     Check
                   </Button>
                 </div>
+                <div>
+                  <Button variant="outline" onClick={resetQuestion}>
+                    Skip
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -210,7 +291,7 @@ export function QuizSession({ config }: { config: QuizConfig }) {
                 <p
                   className={cn(
                     "text-base font-medium",
-                    status === "correct" && "text-foreground",
+                    status === "correct" && "text-emerald-600 dark:text-emerald-400",
                     status === "incorrect" && "text-destructive"
                   )}
                 >
@@ -224,13 +305,20 @@ export function QuizSession({ config }: { config: QuizConfig }) {
                     </Link>
                   </div>
                 )}
+                {question.mode === "multiple-choice" && (
+                  <p className="text-sm text-muted-foreground">
+                    Press any key to continue.
+                  </p>
+                )}
                 <div className="flex flex-wrap gap-3">
-                  <Button size="lg" variant="secondary" onClick={resetQuestion}>
+                  <Button size="lg" onClick={resetQuestion}>
                     Next
                   </Button>
-                  <Link className="text-sm underline" href="/">
-                    Back to home
-                  </Link>
+                  <Button variant="ghost" size="sm" asChild aria-label="Home">
+                    <Link href="/">
+                      <Home className="h-4 w-4" />
+                    </Link>
+                  </Button>
                 </div>
               </div>
             )}

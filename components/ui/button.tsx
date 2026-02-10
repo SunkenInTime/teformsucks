@@ -23,7 +23,7 @@ const variantClasses: Record<ButtonVariant, string> = {
     "bg-secondary text-secondary-foreground hover:bg-secondary/70 active:bg-secondary/60",
   ghost: "hover:bg-accent hover:text-accent-foreground",
   outline:
-    "border border-input bg-background hover:bg-foreground/5 hover:text-foreground active:bg-foreground/10",
+    "border border-input bg-background hover:bg-foreground/8 hover:text-foreground active:bg-foreground/12",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
