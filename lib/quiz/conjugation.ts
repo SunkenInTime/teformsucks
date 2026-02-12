@@ -5,9 +5,10 @@ export type VerbTarget =
   | "mashita"
   | "te"
   | "te-imasu"
-  | "te-imashita";
+  | "te-imashita"
+  | "type";
 
-export type AdjectiveTarget = "desu" | "deshita" | "te";
+export type AdjectiveTarget = "desu" | "deshita" | "te" | "type";
 
 export type QuizTarget = VerbTarget | AdjectiveTarget;
 
@@ -80,12 +81,13 @@ function irregularVerb(verb: string, target: VerbTarget) {
     if (target === "te-imasu") return "しています";
     return "していました";
   }
-  if (verb === "くる") {
-    if (target === "masu") return "きます";
-    if (target === "mashita") return "きました";
-    if (target === "te") return "きて";
-    if (target === "te-imasu") return "きています";
-    return "きていました";
+  if (verb === "くる" || verb === "来る") {
+    const kuruStem = verb === "来る" ? "来" : "き";
+    if (target === "masu") return `${kuruStem}ます`;
+    if (target === "mashita") return `${kuruStem}ました`;
+    if (target === "te") return `${kuruStem}て`;
+    if (target === "te-imasu") return `${kuruStem}ています`;
+    return `${kuruStem}ていました`;
   }
   if (verb.endsWith("する")) {
     const stem = verb.slice(0, -2);
@@ -113,12 +115,13 @@ export function conjugateVerb(
   const { prefix, verb } = splitFinalVerb(word.kana);
   let result = "";
 
-  if (verb === "いく") {
-    if (target === "masu") result = "いきます";
-    else if (target === "mashita") result = "いきました";
-    else if (target === "te") result = "いって";
-    else if (target === "te-imasu") result = "いっています";
-    else result = "いっていました";
+  if (verb === "いく" || verb === "行く") {
+    const ikuStem = verb === "行く" ? "行" : "い";
+    if (target === "masu") result = `${ikuStem}きます`;
+    else if (target === "mashita") result = `${ikuStem}きました`;
+    else if (target === "te") result = `${ikuStem}って`;
+    else if (target === "te-imasu") result = `${ikuStem}っています`;
+    else result = `${ikuStem}っていました`;
   } else if (word.type === "irregular") {
     result = irregularVerb(verb, target);
   } else if (word.type === "ru") {
@@ -142,6 +145,7 @@ function iAdjectiveBase(kana: string) {
   if (kana === "いい") return "よ";
   if (kana === "かっこいい") return "かっこよ";
   if (kana === "あたまがいい") return "あたまがよ";
+  if (kana === "頭がいい") return "頭がよ";
   return kana.slice(0, -1);
 }
 
@@ -171,6 +175,8 @@ export function getTypeLabel(word: WordEntry): string {
 
 export function getTargetLabel(target: QuizTarget): string {
   switch (target) {
+    case "type":
+      return "Type";
     case "masu":
       return "ます";
     case "mashita":
@@ -193,12 +199,54 @@ export function getTargetLabel(target: QuizTarget): string {
 }
 
 export function getAnswer(word: WordEntry, target: QuizTarget): string {
+  if (target === "type") {
+    return getTypeLabel(word);
+  }
   if (word.group === "verb") {
     return conjugateVerb(word, target as VerbTarget);
   }
   return conjugateAdjective(word, target as AdjectiveTarget);
 }
 
+function getAnswerForForm(word: WordEntry, target: QuizTarget, form: string): string {
+  const entry = { ...word, kana: form };
+  return getAnswer(entry, target);
+}
+
+export function getAcceptedAnswers(word: WordEntry, target: QuizTarget): string[] {
+  if (target === "type") {
+    const answers = new Set<string>([getTypeLabel(word)]);
+    if (word.group === "verb") {
+      if (word.type === "u") {
+        answers.add("u");
+        answers.add("u-verb");
+      }
+      if (word.type === "ru") {
+        answers.add("ru");
+        answers.add("ru-verb");
+      }
+      if (word.type === "irregular") answers.add("irregular");
+    } else {
+      if (word.type === "i") {
+        answers.add("i");
+        answers.add("i-adj");
+      }
+      if (word.type === "na") {
+        answers.add("na");
+        answers.add("na-adj");
+      }
+    }
+    return Array.from(answers);
+  }
+  const answers = new Set<string>([getAnswer(word, target)]);
+  if (word.kanji?.length) {
+    word.kanji.forEach((variant: string) => {
+      answers.add(getAnswerForForm(word, target, variant));
+    });
+  }
+  return Array.from(answers);
+}
+
 export function normalizeAnswer(value: string) {
-  return value.replace(/\s+/g, "").trim();
+  return value.normalize("NFKC").replace(/\s+/g, "").trim();
 }

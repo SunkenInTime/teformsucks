@@ -23,8 +23,9 @@ export const verbTargets: VerbTarget[] = [
   "te",
   "te-imasu",
   "te-imashita",
+  "type",
 ];
-export const adjectiveTargets: AdjectiveTarget[] = ["desu", "deshita", "te"];
+export const adjectiveTargets: AdjectiveTarget[] = ["desu", "deshita", "te", "type"];
 
 export const allModes: QuestionMode[] = [
   "multiple-choice",
@@ -109,6 +110,28 @@ export const presets: QuizConfig[] = [
     verbTargets: ["te-imasu", "te-imashita"],
     adjectiveTargets: [],
     modes: allModes,
+  },
+  {
+    id: "verb-type",
+    title: "Verb Types",
+    description: "u / ru / irregular",
+    wordGroups: ["verb"],
+    verbTypes: ["u", "ru", "irregular"],
+    adjectiveTypes: [],
+    verbTargets: ["type"],
+    adjectiveTargets: [],
+    modes: ["multiple-choice"],
+  },
+  {
+    id: "adj-type",
+    title: "Adjective Types",
+    description: "i / na",
+    wordGroups: ["adjective"],
+    verbTypes: [],
+    adjectiveTypes: ["i", "na"],
+    verbTargets: [],
+    adjectiveTargets: ["type"],
+    modes: ["multiple-choice"],
   },
   {
     id: "adj-i-desu",

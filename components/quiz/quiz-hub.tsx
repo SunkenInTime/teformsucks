@@ -189,6 +189,7 @@ export function QuizHub({ isQuizVisible = false }: { isQuizVisible?: boolean }) 
               { id: "te", label: "て" },
               { id: "te-imasu", label: "ています" },
               { id: "te-imashita", label: "ていました" },
+              { id: "type", label: "Type" },
             ]}
             selected={customConfig.verbTargets}
             onToggle={(value) => handleCustomToggle("verbTargets", value)}
@@ -200,6 +201,7 @@ export function QuizHub({ isQuizVisible = false }: { isQuizVisible?: boolean }) 
               { id: "desu", label: "です" },
               { id: "deshita", label: "でした" },
               { id: "te", label: "て" },
+              { id: "type", label: "Type" },
             ]}
             selected={customConfig.adjectiveTargets}
             onToggle={(value) => handleCustomToggle("adjectiveTargets", value)}

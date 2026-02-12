@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { adjectives, type AdjectiveType, verbs, type VerbType, type WordEntry } from "@/lib/data/words";
 import {
+  getAcceptedAnswers,
   getAnswer,
   getTargetLabel,
   getTypeLabel,
@@ -24,6 +25,7 @@ type Question = {
   target: QuizTarget;
   mode: "multiple-choice" | "fill-blank" | "typing";
   answer: string;
+  acceptedAnswers: string[];
   choices?: string[];
 };
 
@@ -32,6 +34,14 @@ function randomItem<T>(items: T[]) {
 }
 
 function buildChoices(correct: string, pool: WordEntry[], target: QuizTarget) {
+  if (target === "type") {
+    const options =
+      pool.length && pool[0]?.group === "verb"
+        ? ["u-verb", "ru-verb", "irregular"]
+        : ["i-adj", "na-adj"];
+    return options.sort(() => Math.random() - 0.5);
+  }
+
   const choices = new Set<string>([correct]);
   let attempts = 0;
   while (choices.size < 4 && attempts < 50) {
@@ -74,8 +84,14 @@ function buildQuestion(config: QuizConfig): Question | null {
   if (!targets.length) return null;
 
   const target = randomItem(targets);
-  const mode = randomItem(config.modes);
+  let mode = randomItem(config.modes);
   const answer = getAnswer(word, target);
+  const acceptedAnswers = getAcceptedAnswers(word, target);
+  const answerLabel = target === "type" ? getTypeLabel(word) : answer;
+
+  if (target === "type") {
+    mode = "multiple-choice";
+  }
 
   if (mode === "multiple-choice") {
     const choicePool = words.filter((item) => item.group === word.group);
@@ -83,8 +99,9 @@ function buildQuestion(config: QuizConfig): Question | null {
       word,
       target,
       mode,
-      answer,
-      choices: buildChoices(answer, choicePool, target),
+      answer: answerLabel,
+      acceptedAnswers,
+      choices: buildChoices(answerLabel, choicePool, target),
     };
   }
 
@@ -92,7 +109,8 @@ function buildQuestion(config: QuizConfig): Question | null {
     word,
     target,
     mode,
-    answer,
+    answer: answerLabel,
+    acceptedAnswers,
   };
 }
 
@@ -112,9 +130,8 @@ export function QuizSession({
     null
   );
   const [requireCorrection, setRequireCorrection] = React.useState(false);
-  const [correctionValue, setCorrectionValue] = React.useState("");
   const [correctionAccepted, setCorrectionAccepted] = React.useState(false);
-  const correctionInputRef = React.useRef<HTMLInputElement | null>(null);
+  const answerInputRef = React.useRef<HTMLInputElement | null>(null);
   const isIncorrect = status === "incorrect";
   const mustCorrect = requireCorrection && isIncorrect && !correctionAccepted;
   const canAdvance =
@@ -125,7 +142,6 @@ export function QuizSession({
     setInputValue("");
     setStatus("idle");
     setSelectedChoice(null);
-    setCorrectionValue("");
     setCorrectionAccepted(false);
   }, [config]);
 
@@ -134,19 +150,28 @@ export function QuizSession({
     setInputValue("");
     setStatus("idle");
     setSelectedChoice(null);
-    setCorrectionValue("");
     setCorrectionAccepted(false);
   }, [config]);
+
+  const answerMatches = React.useCallback(
+    (value: string) => {
+      if (!question) return false;
+      const normalizedValue = normalizeAnswer(value);
+      return question.acceptedAnswers.some(
+        (answer) => normalizeAnswer(answer) === normalizedValue
+      );
+    },
+    [question]
+  );
 
   const checkAnswer = React.useCallback(
     (value: string) => {
       if (!question) return;
-      const isCorrect =
-        normalizeAnswer(value) === normalizeAnswer(question.answer);
+      const isCorrect = answerMatches(value);
       setStatus(isCorrect ? "correct" : "incorrect");
       setCorrectionAccepted(false);
       if (isCorrect) {
-        setCorrectionValue("");
+        setInputValue("");
         if (question.mode !== "multiple-choice") {
           requestAnimationFrame(() => {
             if (document.activeElement instanceof HTMLElement) {
@@ -167,13 +192,12 @@ export function QuizSession({
 
   const confirmCorrection = React.useCallback(() => {
     if (!question) return;
-    const isCorrect =
-      normalizeAnswer(correctionValue) ===
-      normalizeAnswer(question.answer);
+    const isCorrect = answerMatches(inputValue);
     if (isCorrect) {
       setCorrectionAccepted(true);
+      setInputValue("");
     }
-  }, [correctionValue, question]);
+  }, [answerMatches, inputValue, question]);
 
   React.useEffect(() => {
     if (status === "idle" || !question || !canAdvance) return;
@@ -214,10 +238,13 @@ export function QuizSession({
   }, [status, question, canAdvance, resetQuestion]);
 
   React.useEffect(() => {
-    if (!requireCorrection) return;
-    if (status !== "incorrect" || correctionAccepted) return;
-    correctionInputRef.current?.focus();
-  }, [requireCorrection, status, correctionAccepted]);
+    if (!mustCorrect) return;
+    const frame = requestAnimationFrame(() => {
+      answerInputRef.current?.focus();
+      answerInputRef.current?.select();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [mustCorrect]);
 
   React.useEffect(() => {
     if (status === "idle" || !question) return;
@@ -289,18 +316,18 @@ export function QuizSession({
             </div>
 
             {question.mode === "multiple-choice" && (
-              <div className="space-y-3">
-                <div className="grid gap-3 md:grid-cols-2">
-                  {question.choices?.map((choice) => {
-                    const normalizedChoice = normalizeAnswer(choice);
-                    const normalizedAnswer = normalizeAnswer(question.answer);
-                    const isSelected = selectedChoice === choice;
-                    const isCorrectAnswer =
-                      normalizedChoice === normalizedAnswer;
-                    const showCorrectHighlight =
-                      status === "incorrect" && isCorrectAnswer;
-                    const showSelectedCorrect =
-                      status === "correct" && isSelected && isCorrectAnswer;
+                <div className="space-y-3">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {question.choices?.map((choice) => {
+                      const normalizedChoice = normalizeAnswer(choice);
+                      const isSelected = selectedChoice === choice;
+                      const isCorrectAnswer = question.acceptedAnswers.some(
+                        (answer) => normalizeAnswer(answer) === normalizedChoice
+                      );
+                      const showCorrectHighlight =
+                        status === "incorrect" && isCorrectAnswer;
+                      const showSelectedCorrect =
+                        status === "correct" && isSelected && isCorrectAnswer;
                     const showSelectedWrong =
                       status === "incorrect" && isSelected && !isCorrectAnswer;
                     return (
@@ -314,21 +341,45 @@ export function QuizSession({
                           showSelectedWrong &&
                             "bg-rose-500 text-white hover:bg-rose-500"
                         )}
-                        onClick={() => {
-                          setSelectedChoice(choice);
-                          checkAnswer(choice);
-                        }}
-                      >
-                        {choice}
-                      </Button>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <Button variant="outline" onClick={resetQuestion}>
-                    Skip
-                  </Button>
-                  <label className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                          onClick={() => {
+                            setSelectedChoice(choice);
+                            checkAnswer(choice);
+                          }}
+                        >
+                          {choice}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  {mustCorrect && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Type the correct answer to continue.
+                      </p>
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <Input
+                          ref={answerInputRef}
+                          value={inputValue}
+                          onChange={(event) => setInputValue(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              confirmCorrection();
+                            }
+                          }}
+                          className="h-10 text-sm"
+                          placeholder="Correct answer"
+                        />
+                        <Button variant="secondary" onClick={confirmCorrection}>
+                          Confirm
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between gap-4">
+                    <Button variant="outline" onClick={resetQuestion}>
+                      Skip
+                    </Button>
+                    <label className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
                     <input
                       type="checkbox"
                       className="h-4 w-4 accent-foreground"
@@ -355,18 +406,28 @@ export function QuizSession({
                 )}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Input
+                    ref={answerInputRef}
                     value={inputValue}
                     onChange={(event) => setInputValue(event.target.value)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter") {
-                        checkAnswer(inputValue);
+                        if (mustCorrect) {
+                          confirmCorrection();
+                        } else {
+                          checkAnswer(inputValue);
+                        }
                       }
                     }}
                     className="h-12 text-base"
                     placeholder="Type your answer"
                   />
-                  <Button className="h-12 text-base" onClick={() => checkAnswer(inputValue)}>
-                    Check
+                  <Button
+                    className="h-12 text-base"
+                    onClick={() =>
+                      mustCorrect ? confirmCorrection() : checkAnswer(inputValue)
+                    }
+                  >
+                    {mustCorrect ? "Confirm" : "Check"}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between gap-4">
@@ -409,30 +470,6 @@ export function QuizSession({
                     <Link className="underline" href="/cheatsheet">
                       Need the cheat sheet?
                     </Link>
-                  </div>
-                )}
-                {mustCorrect && (
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Type the correct answer to continue.
-                    </p>
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      <Input
-                        ref={correctionInputRef}
-                        value={correctionValue}
-                        onChange={(event) => setCorrectionValue(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") {
-                            confirmCorrection();
-                          }
-                        }}
-                        className="h-10 text-sm"
-                        placeholder="Correct answer"
-                      />
-                      <Button variant="secondary" onClick={confirmCorrection}>
-                        Confirm
-                      </Button>
-                    </div>
                   </div>
                 )}
                 {canAdvance && !mustCorrect && (
