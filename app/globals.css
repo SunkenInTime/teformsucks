@@ -96,3 +96,33 @@ body {
 .dark .bg-dot-grid {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Ccircle cx='1' cy='1' r='1' fill='%23334155' fill-opacity='0.6'/%3E%3C/svg%3E");
 }
+
+@keyframes quiz-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.quiz-input-success {
+  border-color: hsl(142 76% 36%);
+  box-shadow: 0 0 0 1px hsl(142 76% 36% / 0.35);
+}
+
+.quiz-input-error {
+  border-color: hsl(var(--destructive));
+  box-shadow: 0 0 0 1px hsl(var(--destructive) / 0.3);
+  animation: quiz-shake 0.3s ease-in-out;
+}
