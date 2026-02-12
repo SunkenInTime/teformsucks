@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Home } from "lucide-react";
 
+import { SoundToggle } from "@/components/sound-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { QuizSession } from "@/components/quiz/quiz-session";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ export function QuizPageClient() {
           </Link>
         </Button>
         <div className="flex items-center gap-3">
+          <SoundToggle />
           <Button variant="ghost" size="sm" asChild>
             <Link href="/cheatsheet">Cheat sheet</Link>
           </Button>

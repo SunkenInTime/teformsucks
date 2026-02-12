@@ -19,6 +19,7 @@ import {
 } from "@/lib/quiz/conjugation";
 import type { QuizConfig } from "@/lib/quiz/config";
 import { cn } from "@/lib/utils";
+import { getSoundMuted, SOUND_MUTED_EVENT } from "@/lib/sound";
 
 type Question = {
   word: WordEntry;
@@ -135,6 +136,10 @@ export function QuizSession({
   const [requireCorrection, setRequireCorrection] = React.useState(false);
   const [correctionAccepted, setCorrectionAccepted] = React.useState(false);
   const answerInputRef = React.useRef<HTMLInputElement | null>(null);
+  const correctAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const wrongAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const swipeAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const isMutedRef = React.useRef(false);
   const isIncorrect = status === "incorrect";
   const mustCorrect = requireCorrection && isIncorrect && !correctionAccepted;
   const canAdvance =
@@ -148,6 +153,29 @@ export function QuizSession({
         : "";
   const actionLabel = isSuccess ? "Next" : mustCorrect ? "Confirm" : "Check";
 
+  const playSound = React.useCallback((ref: React.RefObject<HTMLAudioElement | null>) => {
+    const audio = ref.current;
+    if (!audio || isMutedRef.current) return;
+    audio.currentTime = 0;
+    void audio.play().catch(() => undefined);
+  }, []);
+
+  React.useEffect(() => {
+    isMutedRef.current = getSoundMuted();
+    correctAudioRef.current = new Audio("/sound/correct.mp3");
+    wrongAudioRef.current = new Audio("/sound/wrong.mp3");
+    swipeAudioRef.current = new Audio("/sound/swipe.mp3");
+    if (correctAudioRef.current) correctAudioRef.current.preload = "auto";
+    if (wrongAudioRef.current) wrongAudioRef.current.preload = "auto";
+    if (swipeAudioRef.current) swipeAudioRef.current.preload = "auto";
+    const handleMute = (event: Event) => {
+      const detail = (event as CustomEvent<boolean>).detail;
+      isMutedRef.current = Boolean(detail);
+    };
+    window.addEventListener(SOUND_MUTED_EVENT, handleMute);
+    return () => window.removeEventListener(SOUND_MUTED_EVENT, handleMute);
+  }, []);
+
   React.useEffect(() => {
     setQuestion(buildQuestion(config));
     setInputValue("");
@@ -156,6 +184,11 @@ export function QuizSession({
     setSelectedChoice(null);
     setCorrectionAccepted(false);
   }, [config]);
+
+  React.useEffect(() => {
+    if (!question) return;
+    playSound(swipeAudioRef);
+  }, [question, playSound]);
 
   const resetQuestion = React.useCallback(() => {
     setQuestion(buildQuestion(config));
@@ -192,6 +225,7 @@ export function QuizSession({
       setStatus(isCorrect ? "correct" : "incorrect");
       setCorrectionAccepted(false);
       triggerInputFeedback(isCorrect ? "success" : "error");
+      playSound(isCorrect ? correctAudioRef : wrongAudioRef);
       if (question.mode !== "multiple-choice") {
         requestAnimationFrame(() => {
           if (document.activeElement instanceof HTMLElement) {
@@ -200,7 +234,7 @@ export function QuizSession({
         });
       }
     },
-    [answerMatches, question, triggerInputFeedback]
+    [answerMatches, playSound, question, triggerInputFeedback]
   );
 
   const confirmCorrection = React.useCallback(() => {
@@ -209,6 +243,7 @@ export function QuizSession({
     if (isCorrect) {
       setCorrectionAccepted(true);
       triggerInputFeedback("success");
+      playSound(correctAudioRef);
       requestAnimationFrame(() => {
         if (document.activeElement instanceof HTMLElement) {
           document.activeElement.blur();
@@ -216,8 +251,9 @@ export function QuizSession({
       });
     } else {
       triggerInputFeedback("error");
+      playSound(wrongAudioRef);
     }
-  }, [answerMatches, inputValue, question, triggerInputFeedback]);
+  }, [answerMatches, inputValue, playSound, question, triggerInputFeedback]);
 
   React.useEffect(() => {
     if (inputFeedback === "idle") return;

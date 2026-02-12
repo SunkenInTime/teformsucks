@@ -4,14 +4,50 @@ import * as React from "react";
 import { ArrowLeft, Github } from "lucide-react";
 
 import { QuizHub } from "@/components/quiz/quiz-hub";
+import { SoundToggle } from "@/components/sound-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { getSoundMuted, SOUND_MUTED_EVENT } from "@/lib/sound";
 
 export default function Home() {
   const [activeSection, setActiveSection] = React.useState<"hero" | "quiz">(
     "hero"
   );
+  const swipeAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const hasMountedRef = React.useRef(false);
   const isQuiz = activeSection === "quiz";
+  const isMutedRef = React.useRef(false);
+
+  const playSwipe = React.useCallback(() => {
+    const audio = swipeAudioRef.current;
+    if (!audio || isMutedRef.current) return;
+    audio.currentTime = 0;
+    void audio.play().catch(() => undefined);
+  }, []);
+
+  React.useEffect(() => {
+    isMutedRef.current = getSoundMuted();
+    swipeAudioRef.current = new Audio("/sound/swipe.mp3");
+    if (swipeAudioRef.current) swipeAudioRef.current.preload = "auto";
+    const handleMute = (event: Event) => {
+      const detail = (event as CustomEvent<boolean>).detail;
+      isMutedRef.current = Boolean(detail);
+    };
+    window.addEventListener(SOUND_MUTED_EVENT, handleMute);
+    return () => window.removeEventListener(SOUND_MUTED_EVENT, handleMute);
+  }, []);
+
+  React.useEffect(() => {
+    playSwipe();
+  }, [playSwipe]);
+
+  React.useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    playSwipe();
+  }, [activeSection, playSwipe]);
 
   return (
     <main className="relative h-screen overflow-hidden bg-background text-foreground">
@@ -37,6 +73,9 @@ export default function Home() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          <SoundToggle onToggle={(muted) => {
+            isMutedRef.current = muted;
+          }} />
           <ThemeToggle />
         </div>
       </header>
