@@ -20,6 +20,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preload" as="audio" href="/sound/correct.mp3" />
+        <link rel="preload" as="audio" href="/sound/wrong.mp3" />
+        <link rel="preload" as="audio" href="/sound/swipe.mp3" />
+      </head>
       <body className={`${ibmPlexSans.variable} antialiased`}>
         {children}
       </body>
