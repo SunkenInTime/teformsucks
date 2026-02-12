@@ -139,6 +139,7 @@ export function QuizSession({
   const correctAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const wrongAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const swipeAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const hasPrimedAudioRef = React.useRef(false);
   const isMutedRef = React.useRef(false);
   const isIncorrect = status === "incorrect";
   const mustCorrect = requireCorrection && isIncorrect && !correctionAccepted;
@@ -160,21 +161,70 @@ export function QuizSession({
     void audio.play().catch(() => undefined);
   }, []);
 
+  const primeAudio = React.useCallback(() => {
+    if (hasPrimedAudioRef.current) return;
+    hasPrimedAudioRef.current = true;
+    [correctAudioRef, wrongAudioRef, swipeAudioRef].forEach((ref) => {
+      const audio = ref.current;
+      if (!audio) return;
+      const originalVolume = audio.volume;
+      audio.volume = 0;
+      audio.currentTime = 0;
+      try {
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.then === "function") {
+          playPromise
+            .then(() => {
+              audio.pause();
+              audio.currentTime = 0;
+              audio.volume = originalVolume;
+            })
+            .catch(() => {
+              audio.pause();
+              audio.currentTime = 0;
+              audio.volume = originalVolume;
+            });
+          return;
+        }
+      } catch {
+        // Ignore priming errors.
+      }
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = originalVolume;
+    });
+  }, []);
+
   React.useEffect(() => {
     isMutedRef.current = getSoundMuted();
     correctAudioRef.current = new Audio("/sound/correct.mp3");
     wrongAudioRef.current = new Audio("/sound/wrong.mp3");
     swipeAudioRef.current = new Audio("/sound/swipe.mp3");
-    if (correctAudioRef.current) correctAudioRef.current.preload = "auto";
-    if (wrongAudioRef.current) wrongAudioRef.current.preload = "auto";
-    if (swipeAudioRef.current) swipeAudioRef.current.preload = "auto";
+    if (correctAudioRef.current) {
+      correctAudioRef.current.preload = "auto";
+      correctAudioRef.current.load();
+    }
+    if (wrongAudioRef.current) {
+      wrongAudioRef.current.preload = "auto";
+      wrongAudioRef.current.load();
+    }
+    if (swipeAudioRef.current) {
+      swipeAudioRef.current.preload = "auto";
+      swipeAudioRef.current.load();
+    }
     const handleMute = (event: Event) => {
       const detail = (event as CustomEvent<boolean>).detail;
       isMutedRef.current = Boolean(detail);
     };
+    const handlePrime = () => {
+      primeAudio();
+    };
     window.addEventListener(SOUND_MUTED_EVENT, handleMute);
+    window.addEventListener("pointerdown", handlePrime, { capture: true, once: true });
+    window.addEventListener("keydown", handlePrime, { capture: true, once: true });
+    window.addEventListener("touchstart", handlePrime, { capture: true, once: true });
     return () => window.removeEventListener(SOUND_MUTED_EVENT, handleMute);
-  }, []);
+  }, [primeAudio]);
 
   React.useEffect(() => {
     setQuestion(buildQuestion(config));
