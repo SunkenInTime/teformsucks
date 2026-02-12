@@ -186,6 +186,56 @@ export default function CheatSheetPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Te-form rules for verbs</CardTitle>
+            <CardDescription>Conjugate from dictionary form.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-lg border bg-background/60 p-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Rule</p>
+                  <span className="rounded-full bg-emerald-800/80 px-2 py-0.5 text-xs font-semibold text-emerald-50 dark:bg-emerald-500/35 dark:text-emerald-50">
+                    Ru-verb
+                  </span>
+                </div>
+                <p className="mt-2 font-medium">Drop る, add て</p>
+                <p className="text-muted-foreground">たべる → たべて</p>
+              </div>
+
+              <div className="rounded-lg border bg-background/60 p-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Rule</p>
+                  <span className="rounded-full bg-sky-800/80 px-2 py-0.5 text-xs font-semibold text-sky-50 dark:bg-sky-500/35 dark:text-sky-50">
+                    U-verb
+                  </span>
+                </div>
+                <p className="mt-2 font-medium">Change ending</p>
+                <p className="text-muted-foreground">う/つ/る→って, む/ぶ/ぬ→んで, く→いて, ぐ→いで, す→して</p>
+                <p className="text-muted-foreground">のむ → のんで</p>
+              </div>
+
+              <div className="rounded-lg border bg-background/60 p-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Rule</p>
+                  <span className="rounded-full bg-amber-800/80 px-2 py-0.5 text-xs font-semibold text-amber-50 dark:bg-amber-500/35 dark:text-amber-50">
+                    Irregular
+                  </span>
+                </div>
+                <p className="mt-2 font-medium">Special forms</p>
+                <p className="text-muted-foreground">する → して, くる → きて</p>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-dashed bg-muted/20 p-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Exception</p>
+              <p className="mt-1 font-medium">いく (行く) → いって</p>
+              <p className="text-muted-foreground">Not いきて</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Adjective types</CardTitle>
             <CardDescription>Identify i-adj vs na-adj fast.</CardDescription>
           </CardHeader>
