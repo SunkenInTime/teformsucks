@@ -1,0 +1,17 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3001",
+  "executionArgs": {
+    "projectName": "teformsucks",
+    "projectPath": "E:\\Projects\\teformsucks",
+    "testIds": [],
+    "additionalInstruction": "Use localhost:3001. Validate landing flow, quiz presets, custom quiz selection, answer checking behavior, and cheat sheet navigation.",
+    "envs": {
+      "API_KEY": "sk-user-72m4hbtB-OO1E6gPaWkUEtApZ9jSbWyFIU4xa9KcbEN1Ug78P_4hpzrmg3PVMdixZYnkhJ0tz8kUbLvHWpqsvAptlzX-zpEQf-O6KBftiL0ZigINCXEoNscsdrvL1lvgato"
+    }
+  },
+  "serverPort": 50429,
+  "proxy": "http://d48ad11c-afbb-4882-a9b8-aaa71f460c26:iV2zcQURgfYkjehliSLSLz22mAOW3InF@tun.testsprite.com:8080"
+}

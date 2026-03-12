@@ -77,17 +77,6 @@ export function QuizHub({ isQuizVisible = false }: { isQuizVisible?: boolean }) 
       preset.verbTargets.length === 0
   );
 
-  const getPresetFocus = (preset: QuizConfig) => {
-    if (preset.verbTargets.includes("type") || preset.adjectiveTargets.includes("type")) {
-      return "Type ID";
-    }
-    const targets = [...preset.verbTargets, ...preset.adjectiveTargets]
-      .map((target) => getTargetLabel(target))
-      .filter(Boolean);
-    if (!targets.length) return "Mixed";
-    return targets.join(" / ");
-  };
-
   const renderPresetSection = (
     title: string,
     description: string,
@@ -178,6 +167,39 @@ export function QuizHub({ isQuizVisible = false }: { isQuizVisible?: boolean }) 
 
   return (
     <div className="space-y-10">
+      <Card className="overflow-hidden border-foreground/15 bg-[linear-gradient(135deg,hsl(var(--foreground))/0.06,transparent_55%),linear-gradient(180deg,hsl(var(--card)),hsl(var(--card)))]">
+        <CardHeader>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">Featured</Badge>
+            <Badge variant="outline">18 topic buckets</Badge>
+          </div>
+          <CardTitle>Ultimate Midterm Review</CardTitle>
+          <CardDescription>
+            Endless mixed exam mode: vocab, particles, counters, short form,
+            quotatives, sentence linking, and rapid scenario questions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-2">
+            {[
+              "〜ている",
+              "は vs が",
+              "ないでください",
+              "と思います",
+              "もう / まだ",
+              "counters",
+            ].map((label) => (
+              <Badge key={label} variant="secondary">
+                {label}
+              </Badge>
+            ))}
+          </div>
+          <Button asChild>
+            <Link href="/midterm">Start Midterm Review</Link>
+          </Button>
+        </CardContent>
+      </Card>
+
       {renderPresetSection(
         "Verb Conjugation",
         "Practice how verbs change form.",

@@ -1,0 +1,93 @@
+{
+  "tech_stack": [
+    "TypeScript",
+    "React 19",
+    "Next.js 16 (App Router)",
+    "Tailwind CSS 4",
+    "Radix UI Slot",
+    "Lucide React",
+    "LocalStorage",
+    "Vitest + Testing Library"
+  ],
+  "features": [
+    {
+      "name": "Landing and quiz hub navigation",
+      "description": "Renders hero screen, transitions into quiz hub, and provides top-level navigation with sound/theme controls.",
+      "files": [
+        "app/page.tsx"
+      ]
+    },
+    {
+      "name": "Quiz route client shell",
+      "description": "Loads preset/custom config from query params and localStorage, then mounts the interactive quiz session.",
+      "files": [
+        "app/quiz/page.tsx",
+        "components/quiz/quiz-page-client.tsx",
+        "lib/quiz/config.ts"
+      ]
+    },
+    {
+      "name": "Quiz preset and custom builder",
+      "description": "Displays preset cards by category and supports user-defined custom quiz settings persisted in localStorage.",
+      "files": [
+        "components/quiz/quiz-hub.tsx",
+        "lib/quiz/config.ts"
+      ]
+    },
+    {
+      "name": "Interactive quiz engine",
+      "description": "Builds random questions, supports multiple question modes, validates answers, provides correction flow, and advances rounds.",
+      "files": [
+        "components/quiz/quiz-session.tsx",
+        "lib/quiz/conjugation.ts",
+        "lib/data/words.ts"
+      ]
+    },
+    {
+      "name": "Japanese conjugation logic",
+      "description": "Implements verb/adjective conjugation rules, target labels, accepted answer variants, and input normalization.",
+      "files": [
+        "lib/quiz/conjugation.ts",
+        "lib/data/words.ts"
+      ]
+    },
+    {
+      "name": "Cheat sheet reference page",
+      "description": "Provides static grammar/conjugation reference content for verbs and adjectives with quick rules and examples.",
+      "files": [
+        "app/cheatsheet/page.tsx"
+      ]
+    },
+    {
+      "name": "Sound state and effects",
+      "description": "Persists mute state, broadcasts mute changes, and plays feedback/transition audio in quiz and landing screens.",
+      "files": [
+        "components/sound-toggle.tsx",
+        "lib/sound.ts",
+        "components/quiz/quiz-session.tsx",
+        "app/page.tsx",
+        "app/layout.tsx"
+      ]
+    },
+    {
+      "name": "Theme toggle",
+      "description": "Stores light/dark theme preference and applies root class for client-side theming.",
+      "files": [
+        "components/theme-toggle.tsx"
+      ]
+    },
+    {
+      "name": "Reusable UI primitives",
+      "description": "Provides local button, input, card, badge, label, and separator components for consistent UI composition.",
+      "files": [
+        "components/ui/button.tsx",
+        "components/ui/input.tsx",
+        "components/ui/card.tsx",
+        "components/ui/badge.tsx",
+        "components/ui/label.tsx",
+        "components/ui/separator.tsx",
+        "lib/utils.ts"
+      ]
+    }
+  ]
+}

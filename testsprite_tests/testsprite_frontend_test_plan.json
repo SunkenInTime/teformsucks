@@ -1,0 +1,440 @@
+[
+  {
+    "id": "TC001",
+    "title": "Landing Page Renders Correctly",
+    "description": "Verify that the landing page renders the hero screen with app title and start button visible and interactive.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the landing page URL"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the hero screen with the application title is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the start button is visible and enabled"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Landing Page Start Button Navigation",
+    "description": "Ensure clicking the start button navigates the user to the quiz hub smoothly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the landing page"
+      },
+      {
+        "type": "action",
+        "description": "Click the start button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the quiz hub page is loaded"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Quiz Hub Preset Category Cards Display",
+    "description": "Check that preset quiz category cards are displayed correctly on the quiz hub page.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the quiz hub page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all preset quiz category cards are visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Each category card displays correct category information"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Custom Quiz Builder Input Validation",
+    "description": "Validate the custom quiz builder enforces required field validation and prevents starting quiz with invalid configurations.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to quiz hub page"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to start custom quiz with empty or invalid configuration (e.g. no word type selected)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appropriate validation error messages are shown"
+      },
+      {
+        "type": "assertion",
+        "description": "Starting quiz is blocked until configuration is valid"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Custom Quiz Settings Persistence Across Sessions",
+    "description": "Ensure that custom quiz configurations are saved to localStorage and reloaded correctly on revisit.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Configure a custom quiz with specific valid settings"
+      },
+      {
+        "type": "action",
+        "description": "Leave the quiz hub and close the browser session"
+      },
+      {
+        "type": "action",
+        "description": "Reopen the quiz hub page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the custom quiz builder loads the previously saved configuration from localStorage"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Preset Quiz Selection Starts Quiz Session",
+    "description": "Verify selecting a preset quiz category loads and starts the quiz session with questions based on that category.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to quiz hub"
+      },
+      {
+        "type": "action",
+        "description": "Select a preset quiz category card"
+      },
+      {
+        "type": "assertion",
+        "description": "Quiz page loads with questions generated according to preset configuration"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Question Generation Matches Quiz Configuration",
+    "description": "Verify that the quiz generates questions correctly based on the selected or customized quiz configuration (word types, conjugation targets, question formats).",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Start a quiz with a known configuration"
+      },
+      {
+        "type": "assertion",
+        "description": "Check each generated question matches the word types, conjugation targets, and formats specified"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Answer Validation Handles Normalization and Accepted Variants",
+    "description": "Ensure answers are validated correctly accounting for input normalization and recognizing multiple accepted variants for verb and adjective conjugations.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Start quiz with questions requiring conjugation answers"
+      },
+      {
+        "type": "action",
+        "description": "Submit a correct answer using an accepted variant form or differing normalization (e.g. spacing, capitalization)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the answer is accepted as correct"
+      },
+      {
+        "type": "action",
+        "description": "Submit incorrect/unrecognized variant"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the answer is marked incorrect and correction steps appear"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Quiz Question Modes Work Correctly",
+    "description": "Verify that multiple choice, fill-in-the-blank, and typing input question modes function properly including UI presentation, input acceptance, and answer feedback.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Start quizzes configured to use each question mode separately"
+      },
+      {
+        "type": "assertion",
+        "description": "For multiple choice, options are displayed and selectable"
+      },
+      {
+        "type": "assertion",
+        "description": "For fill-in-the-blank, appropriate blanks appear in question text"
+      },
+      {
+        "type": "assertion",
+        "description": "For typing mode, input box is present and allows text entry"
+      },
+      {
+        "type": "action",
+        "description": "Submit correct and incorrect answers in each mode"
+      },
+      {
+        "type": "assertion",
+        "description": "Feedback is provided accordingly for correctness or correction"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Skip Question Functionality",
+    "description": "Verify that users can skip the current question and that the quiz advances to the next question correctly.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "During a quiz session, click the skip question control"
+      },
+      {
+        "type": "assertion",
+        "description": "The current question is skipped and the next question is displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Sound Toggle Persists Mute State and Plays Audio Feedback",
+    "description": "Confirm the sound toggle controls mute state correctly, persists across page reloads, and plays audio feedback for user interactions when sound is enabled.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Toggle sound off using sound toggle control"
+      },
+      {
+        "type": "action",
+        "description": "Reload the application"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify sound remains muted after reload"
+      },
+      {
+        "type": "action",
+        "description": "Toggle sound back on"
+      },
+      {
+        "type": "action",
+        "description": "Trigger quiz interaction that plays audio feedback (e.g. answer submission)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify audio feedback sound plays"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Theme Toggle Applies and Persists Theme Preference",
+    "description": "Verify that toggling the theme control switches between light and dark modes and that the preference is saved and applied on subsequent visits.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Toggle theme from default to dark mode"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the application root class reflects dark mode styling"
+      },
+      {
+        "type": "action",
+        "description": "Reload the page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dark mode styling is applied automatically"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Cheat Sheet Page Displays Correct Content",
+    "description": "Verify that the cheat sheet reference page loads with conjugation rules and examples for verbs and adjectives presented clearly.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the cheat sheet page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify verb conjugation rules and examples are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify adjective conjugation rules and examples are displayed"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Navigation Controls and Browser History Integration",
+    "description": "Ensure navigation controls allow smooth transitions between pages and that the browser back/forward buttons work as expected.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate from landing page to quiz hub to cheat sheet"
+      },
+      {
+        "type": "action",
+        "description": "Use navigation UI controls to move between pages"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify pages load correctly according to navigation"
+      },
+      {
+        "type": "action",
+        "description": "Use browser back button repeatedly"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify navigation history works and pages load correctly in reverse order"
+      },
+      {
+        "type": "action",
+        "description": "Use browser forward button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify navigation forward in history works correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Accessibility Checks for Core UI Components",
+    "description": "Verify that the application UI components such as buttons, inputs, and navigation controls have proper aria-labels, support keyboard navigation, and work with screen readers.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate through the app using keyboard only (tab, enter, space)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all interactive elements are reachable and operable via keyboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all buttons and inputs have appropriate aria-label attributes"
+      },
+      {
+        "type": "assertion",
+        "description": "Use screen reader to verify meaningful announcements and descriptions"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Error Handling for Missing or Invalid Quiz Data",
+    "description": "Check that the application shows meaningful user feedback and does not crash when quiz data is missing or config is invalid.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Manipulate localStorage or URL query params to simulate missing or invalid quiz configuration"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the quiz page with invalid or missing data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a meaningful error message or fallback state is displayed to the user"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the app does not crash or become unresponsive"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Performance Benchmark: Question Generation Responsiveness",
+    "description": "Verify that question generation and UI updates during the quiz session meet required performance benchmarks (e.g. completes within 500ms).",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Start a quiz session with complex configuration"
+      },
+      {
+        "type": "assertion",
+        "description": "Measure and verify question generation and rendering completes within acceptable time limits"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Answer Feedback Correctness and Correction Flow",
+    "description": "Check that after submitting an answer, the feedback indicates correctness and if incorrect, the correction step is shown with explanation.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Submit a correct answer"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify positive feedback is displayed and the quiz advances"
+      },
+      {
+        "type": "action",
+        "description": "Submit an incorrect answer"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify correction interface appears with explanations or hints"
+      }
+    ]
+  }
+]
