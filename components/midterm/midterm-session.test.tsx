@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MidtermSession } from "@/components/midterm/midterm-session";
@@ -56,6 +56,7 @@ function makeState(overrides?: Partial<MidtermSessionState>): MidtermSessionStat
     openingQueue: [],
     retryQueue: [],
     recentTopics: [],
+    recentQuestionIds: [],
     recentWordIds: [],
     coverage,
     askedCount: 0,
@@ -100,8 +101,10 @@ vi.mock("@/lib/midterm/scheduler", () => ({
 
 describe("MidtermSession", () => {
   beforeEach(() => {
+    cleanup();
     questionIndex = 0;
     latestState = makeState();
+    window.localStorage.clear();
   });
 
   it("handles wrong and correct answers while updating visible stats", () => {
@@ -129,5 +132,31 @@ describe("MidtermSession", () => {
     expect(screen.getByText("Correct.")).toBeInTheDocument();
     expect(screen.getByText("1/2")).toBeInTheDocument();
     expect(screen.getByText(/Streak 1/)).toBeInTheDocument();
+  });
+
+  it("restores persisted midterm progress from local storage", () => {
+    window.localStorage.setItem(
+      "teform-midterm-session",
+      JSON.stringify({
+        version: 1,
+        sessionState: makeState({
+          askedCount: 9,
+          attempted: 8,
+          correct: 6,
+          streak: 3,
+        }),
+        question: mockQuestions[1],
+        inputValue: "",
+        selectedChoice: null,
+        status: "idle",
+      })
+    );
+
+    render(<MidtermSession bank={[] as MidtermWordEntry[]} />);
+
+    expect(screen.getByText(mockQuestions[1].prompt)).toBeInTheDocument();
+    expect(screen.getByText(/Question 9/)).toBeInTheDocument();
+    expect(screen.getByText("6/8")).toBeInTheDocument();
+    expect(screen.getByText(/Streak 3/)).toBeInTheDocument();
   });
 });

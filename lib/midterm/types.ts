@@ -93,6 +93,7 @@ export type MidtermSessionState = {
   openingQueue: MidtermTopicTag[];
   retryQueue: MidtermRetryItem[];
   recentTopics: MidtermTopicTag[];
+  recentQuestionIds: string[];
   recentWordIds: string[];
   coverage: Record<MidtermTopicTag, number>;
   askedCount: number;

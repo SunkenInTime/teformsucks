@@ -13,6 +13,9 @@ import { MIDTERM_TOPIC_TAGS } from "@/lib/midterm/types";
 import type { MidtermQuestion, MidtermSessionState, MidtermTopicTag, MidtermWordEntry } from "@/lib/midterm/types";
 import { getSoundMuted, SOUND_MUTED_EVENT } from "@/lib/sound";
 
+const MIDTERM_STORAGE_KEY = "teform-midterm-session";
+const MIDTERM_STORAGE_VERSION = 1;
+
 const topicLabels: Record<MidtermTopicTag, string> = {
   "vocab-recognition": "Vocab",
   "verb-te-form": "Verb て-Form",
@@ -124,6 +127,51 @@ function useAudio() {
   };
 }
 
+type StoredMidtermSession = {
+  version: number;
+  sessionState: MidtermSessionState;
+  question: MidtermQuestion | null;
+  inputValue: string;
+  selectedChoice: string | null;
+  status: "idle" | "correct" | "incorrect";
+};
+
+function loadStoredMidtermSession() {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.localStorage.getItem(MIDTERM_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredMidtermSession>;
+    if (parsed.version !== MIDTERM_STORAGE_VERSION) return null;
+    if (!parsed.sessionState) return null;
+
+    return {
+      sessionState: parsed.sessionState,
+      question: parsed.question ?? null,
+      inputValue: typeof parsed.inputValue === "string" ? parsed.inputValue : "",
+      selectedChoice:
+        typeof parsed.selectedChoice === "string" ? parsed.selectedChoice : null,
+      status:
+        parsed.status === "correct" || parsed.status === "incorrect" || parsed.status === "idle"
+          ? parsed.status
+          : "idle",
+    } satisfies Omit<StoredMidtermSession, "version">;
+  } catch {
+    return null;
+  }
+}
+
+function persistMidtermSession(snapshot: StoredMidtermSession) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(MIDTERM_STORAGE_KEY, JSON.stringify(snapshot));
+  } catch {
+    // Ignore storage failures and keep the session usable in-memory.
+  }
+}
+
 export function MidtermSession({
   bank,
   className,
@@ -141,6 +189,7 @@ export function MidtermSession({
   const [status, setStatus] = React.useState<"idle" | "correct" | "incorrect">("idle");
   const [inputFeedback, setInputFeedback] = React.useState<"idle" | "success" | "error">("idle");
   const answerInputRef = React.useRef<HTMLInputElement | null>(null);
+  const hasHydratedRef = React.useRef(false);
   const { correctAudioRef, wrongAudioRef, swipeAudioRef, playSound } = useAudio();
 
   const applySessionState = React.useCallback((nextState: MidtermSessionState) => {
@@ -159,12 +208,42 @@ export function MidtermSession({
   }, [applySessionState, bank]);
 
   React.useEffect(() => {
+    const stored = loadStoredMidtermSession();
+
+    if (stored) {
+      sessionStateRef.current = stored.sessionState;
+      applySessionState(stored.sessionState);
+      setQuestion(stored.question);
+      setInputValue(stored.inputValue);
+      setSelectedChoice(stored.selectedChoice);
+      setStatus(stored.status);
+      hasHydratedRef.current = true;
+      return;
+    }
+
     const initial = createMidtermSessionState();
     sessionStateRef.current = initial;
     const next = getNextMidtermQuestion(initial, bank);
     applySessionState(next.state);
     setQuestion(next.question);
+    setInputValue("");
+    setSelectedChoice(null);
+    setStatus("idle");
+    hasHydratedRef.current = true;
   }, [applySessionState, bank]);
+
+  React.useEffect(() => {
+    if (!hasHydratedRef.current) return;
+
+    persistMidtermSession({
+      version: MIDTERM_STORAGE_VERSION,
+      sessionState,
+      question,
+      inputValue,
+      selectedChoice,
+      status,
+    });
+  }, [inputValue, question, selectedChoice, sessionState, status]);
 
   React.useEffect(() => {
     if (!question) return;

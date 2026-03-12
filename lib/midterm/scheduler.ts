@@ -28,6 +28,7 @@ export function createMidtermSessionState(rng = Math.random): MidtermSessionStat
     openingQueue: shuffle([...MIDTERM_TOPIC_TAGS], rng),
     retryQueue: [],
     recentTopics: [],
+    recentQuestionIds: [],
     recentWordIds: [],
     coverage: createCoverage(),
     askedCount: 0,
@@ -89,12 +90,23 @@ export function getNextMidtermQuestion(
   rng = Math.random
 ) {
   const selection = selectNextTopic(state, rng);
-  const question = buildQuestionForTopic(selection.topic, bank, selection.state, rng);
+  let question = buildQuestionForTopic(selection.topic, bank, selection.state, rng);
+  let attempts = 0;
+
+  while (
+    selection.state.recentQuestionIds.includes(question.id) &&
+    attempts < 5
+  ) {
+    question = buildQuestionForTopic(selection.topic, bank, selection.state, rng);
+    attempts += 1;
+  }
+
   const nextState: MidtermSessionState = {
     ...selection.state,
     currentTopic: selection.topic,
     askedCount: selection.state.askedCount + 1,
     recentTopics: [selection.topic, ...selection.state.recentTopics].slice(0, 4),
+    recentQuestionIds: [question.id, ...selection.state.recentQuestionIds].slice(0, 12),
     recentWordIds: [...question.referencedWordIds, ...selection.state.recentWordIds].slice(0, 14),
     coverage: {
       ...selection.state.coverage,
